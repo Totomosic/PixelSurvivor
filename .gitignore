@@ -1,0 +1,45 @@
+#Ignore thumbnails created by Windows
+Thumbs.db
+#Ignore files built by Visual Studio
+*.obj
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Dd]ebug*/
+*.sbr
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est[Rr]esult*
+.vs/
+__pycache__/
+**.sln
+**.vcxproj*
+**.pack
+**.bres
+bin/
+bin-int/
+#Nuget packages folder
+packages/
+*.pem
+**.cfg
+Makefile
+*.xcodeproj/
+*.xcworkspace/
+*.DS_Store
+*.dat
+EC2Ssh.bat
+UploadDistServerBinary.bat
+UploadDebugServerBinary.bat

@@ -1,0 +1,9 @@
+[submodule "PixelSurvivor/vendor/spdlog"]
+	path = PixelSurvivor/vendor/spdlog
+	url = https://github.com/totomosic/spdlog
+[submodule "PixelSurvivor/vendor/glm"]
+	path = PixelSurvivor/vendor/glm
+	url = https://github.com/totomosic/glm
+[submodule "PixelSurvivor/vendor/glfw"]
+	path = PixelSurvivor/vendor/glfw
+	url = https://github.com/totomosic/glfw
