@@ -9,7 +9,7 @@ namespace Pixel
 	class VertexArray
 	{
 	private:
-		GLuint m_ArrayId;
+		Internal::ScopedHandle<Internal::DeleteVertexArray> m_Handle;
 		std::unique_ptr<VertexBuffer> m_Vertices;
 		std::unique_ptr<IndexBuffer> m_Indices;
 
@@ -18,7 +18,7 @@ namespace Pixel
 
 		inline void Bind() const
 		{
-			glBindVertexArray(m_ArrayId);
+			glBindVertexArray(m_Handle.Id);
 		}
 
 		inline void Unbind() const

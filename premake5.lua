@@ -20,6 +20,7 @@ IncludeDirs["spdlog"] = "PixelSurvivor/vendor/spdlog/include"
 IncludeDirs["Glad"] = "PixelSurvivor/vendor/Glad/include"
 IncludeDirs["glfw"] = "PixelSurvivor/vendor/glfw/include"
 IncludeDirs["glm"] = "PixelSurvivor/vendor/glm"
+IncludeDirs["stb_image"] = "PixelSurvivor/vendor/stb_image"
 
 group ("vendor")
 include ("PixelSurvivor/vendor/Glad")

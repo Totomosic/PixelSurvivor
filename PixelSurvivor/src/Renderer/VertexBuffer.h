@@ -1,5 +1,6 @@
 #pragma once
 #include "BufferLayout.h"
+#include "Utils.h"
 
 namespace Pixel
 {
@@ -8,7 +9,7 @@ namespace Pixel
 	{
 	private:
 		BufferLayout m_Layout;
-		GLuint m_BufferId;
+		Internal::ScopedHandle<Internal::DeleteBuffer> m_Handle;
 		uint32_t m_VertexCount;
 
 	public:
@@ -18,7 +19,7 @@ namespace Pixel
 		inline const BufferLayout& GetLayout() const { return m_Layout; }
 		inline uint32_t GetVertexCount() const { return m_VertexCount; }
 
-		inline void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_BufferId); }
+		inline void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_Handle.Id); }
 		inline void Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 
 	private:

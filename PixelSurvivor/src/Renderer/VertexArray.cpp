@@ -3,7 +3,7 @@
 namespace Pixel
 {
 	VertexArray::VertexArray()
-		: m_ArrayId(0)
+		: m_Handle()
 	{
 		Init();
 	}
@@ -35,7 +35,7 @@ namespace Pixel
 
 	void VertexArray::Init()
 	{
-		glGenVertexArrays(1, &m_ArrayId);
+		glGenVertexArrays(1, &m_Handle.Id);
 	}
 
 }

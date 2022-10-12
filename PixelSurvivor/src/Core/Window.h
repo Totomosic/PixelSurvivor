@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string>
+#include "Renderer/Utils.h"
 
 namespace Pixel
 {
@@ -25,6 +26,8 @@ namespace Pixel
 
 		inline GLFWwindow* GetHandle() const { return m_WindowHandle; }
 		inline const WindowProps& GetProps() const { return m_Props; }
+
+		inline Viewport GetViewport() const { return { 0, 0, m_Props.Width, m_Props.Height }; }
 
 		bool ShouldClose() const;
 		void PollEvents();

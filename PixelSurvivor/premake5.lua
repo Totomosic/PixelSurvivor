@@ -20,6 +20,7 @@ project ("PixelSurvivor")
         "../%{IncludeDirs.spdlog}",
         "../%{IncludeDirs.Glad}",
         "../%{IncludeDirs.glfw}",
+        "../%{IncludeDirs.stb_image}",
         "src",
     }
 

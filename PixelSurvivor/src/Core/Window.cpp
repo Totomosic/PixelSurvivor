@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Renderer/RenderCommand.h"
 
 namespace Pixel
 {
@@ -29,7 +30,9 @@ namespace Pixel
 		auto result = glfwInit();
 		m_WindowHandle = glfwCreateWindow(m_Props.Width, m_Props.Height, m_Props.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_WindowHandle);
-		gladLoadGL();
+		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+		RenderCommand::Init();
 	}
 
 }
