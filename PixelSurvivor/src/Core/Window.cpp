@@ -59,6 +59,7 @@ namespace Pixel
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		glfwSwapInterval(1);
 
+		glfwGetFramebufferSize(m_WindowHandle, &m_Props.Width, &m_Props.Height);
 		glfwSetFramebufferSizeCallback(m_WindowHandle, Internal::HandleWindowResize);
 
 		RenderCommand::Init();

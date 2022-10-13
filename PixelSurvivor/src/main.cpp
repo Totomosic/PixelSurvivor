@@ -25,13 +25,14 @@ int main()
 
     Pixel::Renderer renderer(window.GetViewport());
 
-    window.WindowResized.AddEventListener([&renderer, &window](Pixel::Event<Pixel::WindowResize>& evt)
-        {
-            renderer.SetViewport(window.GetViewport());
-        });
-
     glm::mat4 viewMatrix = glm::mat4(1.0f);
     glm::mat4 projMatrix = glm::ortho(0.0f, (float)props.Width, 0.0f, (float)props.Height, -1.0f, 1.0f);
+
+    window.WindowResized.AddEventListener([&renderer, &window, &projMatrix](Pixel::Event<Pixel::WindowResize>& evt)
+        {
+            renderer.SetViewport(window.GetViewport());
+            projMatrix = glm::ortho(0.0f, (float)evt.Data.Width, 0.0f, (float)evt.Data.Height, -1.0f, 1.0f);
+        });
 
     Pixel::Texture2D run1 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel1.png", {});
     Pixel::Texture2D run2 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel2.png", {});
@@ -57,7 +58,7 @@ int main()
 
     Animation animations[] = { idleAnimation, runAnimation };
 
-    int pixelSize = 4;
+    int pixelSize = 5;
 
     float position = 500.0f;
     float velocity = 0.0f;
@@ -118,7 +119,7 @@ int main()
 
         position += velocity * elapsed;
 
-        renderer.BeginLayer({ 1 }, { viewMatrix, projMatrix, glm::vec4{ 0.1f, 0.1f, 0.1f, 1.0f } });
+        renderer.BeginLayer({ pixelSize }, { viewMatrix, projMatrix, glm::vec4{ 0.1f, 0.1f, 0.1f, 1.0f } });
         renderer.DrawSprite({ position, 200.0f, 0.0f}, {24.0f * pixelSize * direction, 24.0f * pixelSize}, animations[animationIndex].Frames[frameIndex]);
         renderer.EndLayer();
 
