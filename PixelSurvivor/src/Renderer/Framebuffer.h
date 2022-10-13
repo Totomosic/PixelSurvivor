@@ -71,6 +71,8 @@ namespace Pixel
     public:
         Framebuffer(const FramebufferProps& props);
 
+        inline GLuint GetId() const { return m_Handle.Id; }
+
         inline bool SupportsDepth() const
         {
             return m_DepthAttachment != nullptr;

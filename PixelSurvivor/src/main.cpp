@@ -1,10 +1,16 @@
 #include <iostream>
 #include "Core/Window.h"
-#include "Renderer/VertexArray.h"
-#include "Renderer/Shader.h"
-#include "Renderer/Texture2D.h"
-#include "Renderer/RenderCommand.h"
-#include "Renderer/Framebuffer.h"
+#include "Core/Input.h"
+#include "Core/Clock.h"
+#include "Renderer/Renderer.h"
+
+struct Animation
+{
+public:
+    int FrameCount;
+    int FrameRate;
+    Pixel::Texture2D** Frames;
+};
 
 int main()
 {
@@ -15,115 +21,109 @@ int main()
     props.Height = 720;
     props.Title = "Pixel Survivor";
     Pixel::Window window(props);
+    Pixel::Input::SetWindow(&window);
 
-    Pixel::VertexArray vertexArray;
+    Pixel::Renderer renderer(window.GetViewport());
 
-    float* vertices = new float[]{
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    };
-    uint32_t* indices = new uint32_t[]{ 1, 0, 3, 1, 3, 2 };
+    window.WindowResized.AddEventListener([&renderer, &window](Pixel::Event<Pixel::WindowResize>& evt)
+        {
+            renderer.SetViewport(window.GetViewport());
+        });
 
-    Pixel::BufferLayout layout = {
-        { GL_FLOAT, 3 },
-        { GL_FLOAT, 2 },
-    };
-
-    vertexArray.SetVertexBuffer(std::make_unique<Pixel::VertexBuffer>(vertices, 4, layout));
-    vertexArray.SetIndexBuffer(std::make_unique<Pixel::IndexBuffer>(indices, 6));
-
-    delete[] vertices;
-    delete[] indices;
-
-    std::string vertexShader =
-        "#version 450 core\n"
-        "in layout(location = 0) vec3 v_Position;\n"
-        "in layout(location = 1) vec2 v_TexCoord;\n"
-        "uniform mat4 u_ModelMatrix;\n"
-        "uniform mat4 u_ViewMatrix;\n"
-        "uniform mat4 u_ProjectionMatrix;\n"
-        "out vec2 f_TexCoord;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * vec4(v_Position, 1.0);\n"
-        "   f_TexCoord = v_TexCoord;\n"
-        "}\n";
-
-    std::string fragmentShader =
-        "#version 450 core\n"
-        "in vec2 f_TexCoord;\n"
-        "out layout(location = 0) vec4 f_Color;\n"
-        "uniform vec4 u_Color;\n"
-        "uniform sampler2D u_Texture;\n"
-        "void main()\n"
-        "{\n"
-        "   f_Color = texture(u_Texture, f_TexCoord);\n"
-        "}\n";
-
-    Pixel::Shader shader(vertexShader, fragmentShader);
-    int colorLocation = shader.GetUniformLocation("u_Color");
-    int textureLocation = shader.GetUniformLocation("u_Texture");
-
-    int modelMatrixLocation = shader.GetUniformLocation("u_ModelMatrix");
-    int viewMatrixLocation = shader.GetUniformLocation("u_ViewMatrix");
-    int projMatrixLocation = shader.GetUniformLocation("u_ProjectionMatrix");
-
-    glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3{ 500.0f, 200.0f, 0.0f }) * glm::scale(glm::mat4(1.0f), glm::vec3{ 100.0f, 200.0f, 1.0f });
     glm::mat4 viewMatrix = glm::mat4(1.0f);
-    glm::mat4 projMatrix = glm::ortho(0.0f, (float)props.Width, 0.0f, (float)props.Height);
+    glm::mat4 projMatrix = glm::ortho(0.0f, (float)props.Width, 0.0f, (float)props.Height, -1.0f, 1.0f);
 
-    Pixel::Texture2D texture = Pixel::Texture2D::FromFile("../Art/Character.png", {});
+    Pixel::Texture2D run1 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel1.png", {});
+    Pixel::Texture2D run2 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel2.png", {});
+    Pixel::Texture2D run3 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel3.png", {});
+    Pixel::Texture2D run4 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel4.png", {});
+    Pixel::Texture2D run5 = Pixel::Texture2D::FromFile("../Art/Character/ScytheRun/Character_Pixel5.png", {});
 
-    int pixelSize = 3;
-    Pixel::FramebufferProps fprops;
-    fprops.Width = props.Width / pixelSize;
-    fprops.Height = props.Height / pixelSize;
-    fprops.Attachments = {
-        { Pixel::FramebufferTextureFormat::RGBA16F },
-        { Pixel::FramebufferTextureFormat::Depth },
-    };
-    Pixel::Framebuffer framebuffer = Pixel::Framebuffer::Create(fprops);
-    framebuffer.Unbind();
+    Pixel::Texture2D idle1 = Pixel::Texture2D::FromFile("../Art/Character/Idle/Character_Pixel1.png", {});
+    Pixel::Texture2D idle2 = Pixel::Texture2D::FromFile("../Art/Character/Idle/Character_Pixel2.png", {});
 
-    Pixel::RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1.0f });
+    Pixel::Texture2D* runFrames[] = { &run1, &run2, &run3, &run2, &run1, &run4, &run5, &run4 };
+    Pixel::Texture2D* idleFrames[] = { &idle1, &idle2 };
 
+    Animation runAnimation;
+    runAnimation.FrameCount = 8;
+    runAnimation.FrameRate = 8;
+    runAnimation.Frames = runFrames;
+
+    Animation idleAnimation;
+    idleAnimation.FrameCount = 2;
+    idleAnimation.FrameRate = 2;
+    idleAnimation.Frames = idleFrames;
+
+    Animation animations[] = { idleAnimation, runAnimation };
+
+    int pixelSize = 4;
+
+    float position = 500.0f;
+    float velocity = 0.0f;
+    int direction = 1;
+    float speed = 24 * pixelSize * 4.0f;
+
+    int animationIndex = 0;
+    float timeRemaining = 1.0f / animations[animationIndex].FrameRate;
+    int frameIndex = 0;
+
+    Pixel::Clock clock;
     while (!window.ShouldClose())
     {
+        clock.StartFrame();
         window.PollEvents();
 
-        framebuffer.Bind();
+        float elapsed = clock.GetElapsedSeconds();
 
-        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3{ 500.0f, 200.0f, 0.0f }) * glm::scale(glm::mat4(1.0f), glm::vec3{ 100.0f, 200.0f, 1.0f });
+        timeRemaining -= elapsed;
+        if (Pixel::Input::IsKeyDown(Pixel::KeyCode::A))
+        {
+            velocity = -speed;
+            direction = -1;
+            if (animationIndex != 1)
+            {
+                animationIndex = 1;
+                frameIndex = 0;
+                timeRemaining = 1.0f / animations[animationIndex].FrameRate;
+            }
+        }
+        else if (Pixel::Input::IsKeyDown(Pixel::KeyCode::D))
+        {
+            velocity = speed;
+            direction = 1;
+            if (animationIndex != 1)
+            {
+                animationIndex = 1;
+                frameIndex = 0;
+                timeRemaining = 1.0f / animations[animationIndex].FrameRate;
+            }
+        }
+        else
+        {
+            velocity = 0;
+            if (animationIndex != 0)
+            {
+                animationIndex = 0;
+                frameIndex = 0;
+                timeRemaining = 1.0f / animations[animationIndex].FrameRate;
+            }
+        }
 
-        shader.Bind();
-        shader.SetUniform(colorLocation, glm::vec4{ 1.0f, 1.0f, 0.0f, 1.0f });
-        shader.SetUniform(textureLocation, 0);
+        if (timeRemaining < 0.0f)
+        {
+            frameIndex = (frameIndex + 1) % animations[animationIndex].FrameCount;
+            timeRemaining = 1.0f / animations[animationIndex].FrameRate;
+        }
 
-        shader.SetUniform(modelMatrixLocation, modelMatrix);
-        shader.SetUniform(viewMatrixLocation, viewMatrix);
-        shader.SetUniform(projMatrixLocation, projMatrix);
+        position += velocity * elapsed;
 
-        texture.Bind(0);
-
-        Pixel::RenderCommand::SetViewport(framebuffer.GetViewport());
-        Pixel::RenderCommand::Clear();
-        Pixel::RenderCommand::DrawIndexed(GL_TRIANGLES, vertexArray);
-
-        framebuffer.Unbind();
-        framebuffer.GetColorAttachment(0)->Bind(0);
-
-        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3{ props.Width / 2.0f, props.Height / 2.0f, 0.0f }) * glm::scale(glm::mat4(1.0f), glm::vec3{ props.Width, props.Height, 1.0f });
-        shader.SetUniform(modelMatrixLocation, modelMatrix);
-
-        Pixel::RenderCommand::SetViewport(window.GetViewport());
-        Pixel::RenderCommand::Clear();
-        Pixel::RenderCommand::DrawIndexed(GL_TRIANGLES, vertexArray);
-
-        shader.Unbind();
+        renderer.BeginLayer({ 1 }, { viewMatrix, projMatrix, glm::vec4{ 0.1f, 0.1f, 0.1f, 1.0f } });
+        renderer.DrawSprite({ position, 200.0f, 0.0f}, {24.0f * pixelSize * direction, 24.0f * pixelSize}, animations[animationIndex].Frames[frameIndex]);
+        renderer.EndLayer();
 
         window.SwapBuffers();
+        clock.EndFrame();
     }
     return 0;
 }
